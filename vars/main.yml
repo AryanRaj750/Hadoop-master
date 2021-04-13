@@ -1,0 +1,5 @@
+---
+# vars file for hadoop-master
+master_path: "/mn"
+port_no: 9000
+pkg_path: "/root"

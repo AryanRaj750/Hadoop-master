@@ -1,0 +1,50 @@
+---
+# tasks file for hadoop-master
+- name: "hadoop slavenode setup"
+  block:
+   - name: "copy jdk file"
+     copy:
+         src: "jdk-8u171-linux-x64.rpm"
+         dest: "{{ pkg_path }}"
+   - name: "copy hadoop file"
+     copy:
+         src: "hadoop-1.2.1-1.x86_64.rpm"
+         dest: "{{ pkg_path }}"
+   - name: "install jdk..."
+     yum:
+         name: "{{ pkg_path }}/jdk-8u171-linux-x64.rpm"
+         state: present
+         disablerepo: yes
+         disable_gpg_check: yes
+   - name: "installing hadoop..."
+     command: "rpm -i {{ pkg_path }}/hadoop-1.2.1-1.x86_64.rpm --force"
+   - name: "deleting exist {{ master_path }} directory"
+     file:
+         path: "{{ master_path }}"
+         state: absent
+   - name: "creating a new {{ master_path }} directory"
+     file:
+         path: "{{ master_path }}"
+         state: directory
+   - name: "configuring hdfs file..."
+     template:
+         src: "hdfs-site.xml.j2"
+         dest: "/etc/hadoop/hdfs-site.xml"
+   - name: "configuring core file..."
+     template:
+         src: "core-site.xml.j2"
+         dest: "/etc/hadoop/core-site.xml"
+   - name: "format master node"
+     shell: "echo Y | hadoop namenode -format"
+   - name: "starting namenode..."
+     shell: "hadoop-daemon.sh stop namenode && hadoop-daemon.sh start namenode"
+   - name: "checking report..."
+     command: "hadoop dfsadmin -report"
+     register: report
+   - name: " Available datanodes"
+     debug:
+         msg: "{{report.stdout_lines}}"
+  rescue:
+     - name:
+       debug:
+          msg: "It look likes master/Name node is not ready. Please check your master node."
