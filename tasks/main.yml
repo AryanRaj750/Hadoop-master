@@ -43,7 +43,7 @@
      register: report
    - name: " Available datanodes"
      debug:
-         msg: "{{report.stdout_lines}}"
+         msg: "{{ report.stdout_lines }}"
   rescue:
      - name:
        debug:
